@@ -13,9 +13,14 @@ keywords = ["tool"]
 name = "geo-checker"
 path = "src/bin/geo_checker.rs"
 
+[features]
+default = ["ip-api"]
+ip-api = ["reqwest"]
+mmdb = ["maxminddb"]
+
 [dependencies]
 anyhow = "1.0.86"
-reqwest = { version = "0.12.5", features = ["json"] }
+reqwest = { version = "0.12.5", features = ["json"], optional = true}
 serde = { version = "1.0.204", features = ["serde_derive"] }
 serde_json = "1.0.120"
 tokio = { version = "1.38.0", features = ["full"] }
@@ -25,3 +30,4 @@ hickory-client = "0.24.1"
 hickory-proto = "0.24.1"
 rand = "0.8.5"
 futures = "0.3.30"
+maxminddb = { version = "0.24.0", optional = true }

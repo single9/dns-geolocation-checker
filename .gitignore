@@ -1,3 +1,4 @@
 /target
 !/configs/domain.conf.sample
 /configs
+/mmdb

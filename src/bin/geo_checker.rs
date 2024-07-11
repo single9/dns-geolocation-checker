@@ -2,6 +2,7 @@ use anyhow::Result;
 use dns_geolocation_checker::{
     configs_parser::ConfigParser,
     ip_geo_checker::{IpGeoChecker, IpGeoCheckerTestedData},
+    ip_geo_client,
 };
 use std::env;
 
@@ -10,7 +11,8 @@ async fn main() -> Result<()> {
     let path = env::var("CONFIG_PATH").unwrap_or("./configs/config.toml".to_string());
     let parser = ConfigParser::new_with_path(path);
     let config = parser.config();
-    let res = IpGeoChecker::new(reqwest::Client::new())
+    let client = ip_geo_client::IpGeoClient::new();
+    let res = IpGeoChecker::new(client)
         .config(&config)
         .build()
         .check()
