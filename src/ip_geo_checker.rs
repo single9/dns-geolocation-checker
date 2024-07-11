@@ -1,12 +1,15 @@
 #![allow(dead_code)]
 
+use serde::Deserialize;
+use std::net::IpAddr;
+use Result;
+
 use crate::configs_parser::{Config, DomainConfig};
 use crate::dns_client::DnsResolver;
-use serde::Deserialize;
 
 const IP_API_BATCH: &'static str = "http://ip-api.com/batch";
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Default, Debug, Clone, Deserialize)]
 pub struct IpApiResponse {
     pub query: String,
     pub status: String,
@@ -20,6 +23,90 @@ pub struct IpApiResponse {
     pub zip: String,
     pub lat: f64,
     pub lon: f64,
+}
+
+#[derive(Debug, Clone)]
+pub struct IpGeoCheckerTestedData {
+    pub host: String,
+    pub ip: IpAddr,
+    pub geoip: IpApiResponse,
+    pub expected: String,
+    pub actual: String,
+    pub error: Option<String>,
+}
+
+impl Default for IpGeoCheckerTestedData {
+    fn default() -> Self {
+        Self {
+            host: "".to_string(),
+            ip: "0.0.0.0".parse().unwrap(),
+            geoip: IpApiResponse::default(),
+            expected: "".to_string(),
+            actual: "".to_string(),
+            error: None,
+        }
+    }
+}
+
+impl IpGeoCheckerTestedData {
+    pub fn set_host(&mut self, host: &str) -> &mut Self {
+        self.host = host.to_string();
+        self
+    }
+
+    pub fn set_ip(&mut self, ip: IpAddr) -> &mut Self {
+        self.ip = ip;
+        self
+    }
+
+    pub fn set_geoip(&mut self, geoip: IpApiResponse) -> &mut Self {
+        self.geoip = geoip;
+        self
+    }
+
+    pub fn set_expected(&mut self, expected: &str) -> &mut Self {
+        self.expected = expected.to_string().to_ascii_lowercase();
+        self
+    }
+
+    pub fn set_actual(&mut self, actual: &str) -> &mut Self {
+        self.actual = actual.to_string().to_ascii_lowercase();
+        self
+    }
+
+    /// Check if the expected country code matches the actual country code
+    pub fn test(&self) -> Self {
+        if self.expected == self.actual {
+            self.clone()
+        } else {
+            let mut err_res = self.clone();
+            err_res.error = Some(format!(
+                "Expected: {}, Actual: {}",
+                self.expected, self.actual
+            ));
+            err_res.clone()
+        }
+    }
+
+    pub fn is_err(&self) -> bool {
+        self.error.is_some()
+    }
+
+    pub fn is_ok(&self) -> bool {
+        self.error.is_none()
+    }
+
+    pub fn err(&self) -> Option<String> {
+        self.error.clone()
+    }
+}
+
+#[derive(Default, Clone, Debug)]
+pub struct IpGeoCheckerResult {
+    pub domain: DomainConfig,
+    pub geoip: Vec<IpApiResponse>,
+    pub expected: String,
+    pub actual: bool,
 }
 
 pub struct IpGeoCheckerBuilder {
@@ -68,7 +155,7 @@ impl IpGeoChecker {
         IpGeoCheckerBuilder::new(client)
     }
 
-    pub async fn check(&self) -> anyhow::Result<bool> {
+    pub async fn check(&self) -> Vec<IpGeoCheckerTestedData> {
         let resolver = self.dns_resolver.connect().await;
         let test_subnets = self.config.test_subnets.clone();
         let domains = self
@@ -91,28 +178,28 @@ impl IpGeoChecker {
                         .unwrap();
 
                     let ip_info = self.batch_get_ip_info(&ips).await.unwrap();
-                    let geo_not_eq = ip_info.iter().any(|ip_info| {
-                        ip_info.country_code.to_ascii_lowercase() != geo.to_ascii_lowercase()
-                    });
 
-                    if geo_not_eq {
-                        Err(domain.clone())
-                    } else {
-                        Ok(())
-                    }
+                    ip_info
+                        .iter()
+                        .map(|ip| {
+                            IpGeoCheckerTestedData::default()
+                                .set_host(domain.host.as_str())
+                                .set_ip(ip.query.parse().unwrap())
+                                .set_geoip(ip.clone())
+                                .set_expected(geo)
+                                .set_actual(ip.country_code.as_str())
+                                .test()
+                        })
+                        .collect::<Vec<IpGeoCheckerTestedData>>()
                 });
             });
         }
 
-        for task in tasks {
-            let ip_info = task.await;
-            if let Err(domain) = ip_info {
-                eprintln!("Country mismatch for domain: {}", domain.host);
-                return Ok(false);
-            }
-        }
-
-        Ok(true)
+        futures::future::join_all(tasks)
+            .await
+            .into_iter()
+            .flatten()
+            .collect()
     }
 
     async fn batch_get_ip_info(
