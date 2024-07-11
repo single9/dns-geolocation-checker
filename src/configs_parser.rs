@@ -21,21 +21,97 @@ pub struct RoutingCountryConfig {
 }
 
 #[derive(Clone)]
-pub struct ConfigParser {
-    path: String,
+pub struct ConfigParser<T: for<'a> Deserialize<'a>> {
+    config: T,
 }
 
-impl ConfigParser {
-    pub fn new<T: ToString>(path: T) -> ConfigParser {
+impl<C: for<'a> Deserialize<'a>> ConfigParser<C> {
+    pub fn parse(contents: String) -> C {
+        toml::from_str(&contents).unwrap()
+    }
+}
+
+impl ConfigParser<Config> {
+    pub fn new_with_path<T: ToString>(path: T) -> ConfigParser<Config> {
+        let contents =
+            fs::read_to_string(&path.to_string()).expect("Should have been able to read the file");
+
         ConfigParser {
-            path: path.to_string(),
+            config: ConfigParser::parse(contents),
         }
     }
 
-    pub fn parse(&self) -> Config {
-        let contents =
-            fs::read_to_string(&self.path).expect("Should have been able to read the file");
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+}
 
-        toml::from_str(&contents).unwrap()
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    const TEMP_DIR_PATH: &'static str = "./temp";
+    const TEMP_PATH: &'static str = "./temp/domain.toml";
+
+    fn setup() {
+        if fs::read_dir(TEMP_DIR_PATH).is_err() {
+            fs::create_dir_all(TEMP_DIR_PATH).expect("Unable to create directory");
+        }
+
+        let test_config = r#"
+            [test_subnets]
+            us = { subnets = ["44.208.193.0/24"] }
+
+            [[domain]]
+            host = "google.com"
+            geo_routing = ["us"]
+        "#
+        .trim();
+
+        fs::write(TEMP_PATH, test_config).expect("Unable to write file");
+    }
+
+    fn teardown() {
+        fs::remove_dir_all(TEMP_DIR_PATH).expect("Unable to remove directory");
+    }
+
+    #[test]
+    fn test_new_with_path() {
+        setup();
+
+        let parser = ConfigParser::new_with_path(TEMP_PATH);
+        let config = parser.config();
+        assert_eq!(config.domain.len(), 1);
+        assert_eq!(config.test_subnets.len(), 1);
+        assert_eq!(config.domain.len(), 1);
+        assert_eq!(config.test_subnets.len(), 1);
+        assert_eq!(config.domain[0].host, "google.com");
+        assert_eq!(
+            config.test_subnets.get("us").unwrap().subnets[0],
+            "44.208.193.0/24"
+        );
+
+        teardown();
+    }
+
+    #[test]
+    fn test_parse() {
+        let test_config = r#"
+            [test_subnets]
+            us = { subnets = ["44.208.193.0/24"] }
+
+            [[domain]]
+            host = "google.com"
+            geo_routing = ["us"]
+        "#;
+
+        let config: Config = ConfigParser::parse(test_config.to_string());
+        assert_eq!(config.domain.len(), 1);
+        assert_eq!(config.test_subnets.len(), 1);
+        assert_eq!(config.domain[0].host, "google.com");
+        assert_eq!(
+            config.test_subnets.get("us").unwrap().subnets[0],
+            "44.208.193.0/24"
+        );
     }
 }

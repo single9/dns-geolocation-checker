@@ -10,7 +10,8 @@ mod ip_geo_checker;
 #[tokio::main]
 async fn main() -> Result<()> {
     let path = env::var("CONFIG_PATH").unwrap_or("./configs/domain.toml".to_string());
-    let config = ConfigParser::new(path).parse();
+    let parser = ConfigParser::new_with_path(path);
+    let config = parser.config();
     let res = IpGeoChecker::new(reqwest::Client::new())
         .config(&config)
         .build()
