@@ -3,35 +3,45 @@
 use serde::Deserialize;
 use std::{collections::HashMap, fs};
 
+/// A struct to hold the parsed config
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct Config {
+    /// A map of country codes to their respective subnets
     pub test_subnets: HashMap<String, RoutingCountryConfig>,
+    /// A list of domains and their respective geo routing
     pub domain: Vec<DomainConfig>,
 }
 
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct DomainConfig {
+    /// The host of the domain
     pub host: String,
+    /// A list of country codes to route to
     pub geo_routing: Vec<String>,
 }
 
+/// A struct to hold the subnets for a country
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct RoutingCountryConfig {
+    /// A list of subnets
     pub subnets: Vec<String>,
 }
 
 #[derive(Clone)]
 pub struct ConfigParser<T: for<'a> Deserialize<'a>> {
+    /// The parsed config
     config: T,
 }
 
 impl<C: for<'a> Deserialize<'a>> ConfigParser<C> {
+    /// Parse the contents
     pub fn parse(contents: String) -> C {
         toml::from_str(&contents).unwrap()
     }
 }
 
 impl ConfigParser<Config> {
+    /// Create a new ConfigParser with the contents of a file
     pub fn new_with_path<T: ToString>(path: T) -> ConfigParser<Config> {
         let contents =
             fs::read_to_string(&path.to_string()).expect("Should have been able to read the file");
@@ -41,6 +51,7 @@ impl ConfigParser<Config> {
         }
     }
 
+    /// Get the parsed config
     pub fn config(&self) -> &Config {
         &self.config
     }

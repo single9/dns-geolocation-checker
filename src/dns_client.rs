@@ -15,13 +15,20 @@ use hickory_proto::{
 use hickory_resolver::Name;
 use tokio::net::UdpSocket;
 
+/// The address of a DNS server
+///
+/// This can be either a predefined server or a custom one
 pub enum DnsServerAddr {
+    /// Google's public DNS server
     Google,
+    /// CloudFlare's public DNS server
     CloudFlare,
+    /// Custom DNS server
     Custom(SocketAddr),
 }
 
 impl DnsServerAddr {
+    /// Get the address of the DNS server
     pub fn addr(&self) -> SocketAddr {
         match *self {
             DnsServerAddr::Google => ("8.8.8.8", 53).to_socket_addrs().unwrap().next().unwrap(),
@@ -33,10 +40,12 @@ impl DnsServerAddr {
 
 #[derive(Clone)]
 pub struct DnsClient {
+    /// The DNS client
     client: Arc<AsyncClient>,
 }
 
 impl DnsClient {
+    /// Create a new DNS client
     pub async fn new(resolver: DnsServerAddr) -> Self {
         let addr = resolver.addr();
         let stream = UdpClientStream::<UdpSocket>::new(addr);
@@ -50,6 +59,7 @@ impl DnsClient {
         }
     }
 
+    /// Resolve a domain with a subnet
     pub async fn resolve_with_subnet(
         &self,
         domain: &str,
@@ -90,6 +100,7 @@ impl DnsClient {
     }
 }
 
+/// A DNS resolver
 #[derive(Clone)]
 pub enum DnsResolver {
     Google,
@@ -98,6 +109,7 @@ pub enum DnsResolver {
 }
 
 impl DnsResolver {
+    /// Connect to the DNS server
     pub async fn connect(&self) -> DnsClient {
         match self {
             DnsResolver::Google => DnsClient::new(DnsServerAddr::Google).await,

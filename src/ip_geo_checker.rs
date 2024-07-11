@@ -9,6 +9,7 @@ use crate::dns_client::DnsResolver;
 
 const IP_API_BATCH: &'static str = "http://ip-api.com/batch";
 
+/// A struct to hold the response from the ip-api.com API
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct IpApiResponse {
     pub query: String,
@@ -25,14 +26,22 @@ pub struct IpApiResponse {
     pub lon: f64,
 }
 
+/// A struct to hold the tested data
 #[derive(Debug, Clone)]
 pub struct IpGeoCheckerTestedData {
+    /// The host of the domain
     pub host: String,
+    /// The IP address
     pub ip: IpAddr,
+    /// The response from the ip-api.com API
     pub geoip: IpApiResponse,
+    /// The subnet
     pub subnet: String,
+    /// The expected country code
     pub expected: String,
+    /// The actual country code
     pub actual: String,
+    /// The error message
     pub error: Option<String>,
 }
 
