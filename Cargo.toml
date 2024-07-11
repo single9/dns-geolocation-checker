@@ -2,6 +2,13 @@
 name = "dns-geolocation-checker"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "A tool to check the geolocation of a domain based on its DNS records."
+homepage = "https://github.com/single9/dns-geolocation-checker"
+repository = "https://github.com/single9/dns-geolocation-checker"
+license-file = "LICENSE"
+readme = "README.md"
+keywords = ["tool", "dns", "geolocation", "checker"]
 
 [[bin]]
 name = "geo-checker"
