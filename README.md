@@ -80,6 +80,10 @@ To run the tests for this project, execute:
 cargo test --verbose
 ```
 
+## Notice
+
+This application use the [IP Geolocation API](https://ip-api.com/) to get the geolocation of IP addresses.
+
 ## TODO
 
 - [ ] CLI mode
