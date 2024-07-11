@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
+use std::sync::Arc;
 
 use hickory_client::client::AsyncClient;
 use hickory_proto::rr::RData;
@@ -32,7 +33,7 @@ impl DnsServerAddr {
 
 #[derive(Clone)]
 pub struct DnsClient {
-    client: AsyncClient,
+    client: Arc<AsyncClient>,
 }
 
 impl DnsClient {
@@ -44,7 +45,9 @@ impl DnsClient {
 
         tokio::spawn(bg);
 
-        Self { client }
+        Self {
+            client: Arc::new(client),
+        }
     }
 
     pub async fn resolve_with_subnet(
