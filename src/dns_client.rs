@@ -52,10 +52,10 @@ impl DnsClient {
         domain: &str,
         subnet: &str,
     ) -> anyhow::Result<Vec<IpAddr>> {
-        let name = Name::from_ascii(domain).unwrap();
+        let name = Name::from_ascii(domain)?;
         let mut edns = Edns::new();
         edns.options_mut()
-            .insert(EdnsOption::Subnet(subnet.parse().unwrap()));
+            .insert(EdnsOption::Subnet(subnet.parse()?));
 
         let mut msg = Message::new();
         msg.add_query({
@@ -101,5 +101,57 @@ impl DnsResolver {
             DnsResolver::CloudFlare => DnsClient::new(DnsServerAddr::CloudFlare).await,
             DnsResolver::Custom(addr) => DnsClient::new(DnsServerAddr::Custom(*addr)).await,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::{Ipv4Addr, SocketAddrV4};
+
+    #[tokio::test]
+    async fn test_dns_server_addr_google() {
+        let google = DnsServerAddr::Google.addr();
+        assert_eq!(
+            google,
+            ("8.8.8.8", 53).to_socket_addrs().unwrap().next().unwrap()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_dns_server_addr_cloudflare() {
+        let cloudflare = DnsServerAddr::CloudFlare.addr();
+        assert_eq!(
+            cloudflare,
+            ("1.1.1.1", 53).to_socket_addrs().unwrap().next().unwrap()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_dns_server_addr_custom() {
+        let custom_addr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(192, 168, 1, 1), 8080));
+        let custom = DnsServerAddr::Custom(custom_addr).addr();
+        assert_eq!(custom, custom_addr);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_with_subnet_valid() {
+        let resolver = DnsResolver::Google;
+        let client = resolver.connect().await;
+        let result = client
+            .resolve_with_subnet("example.com", "24.24.24.24/24")
+            .await;
+        assert!(result.is_ok());
+        assert!(!result.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_resolve_with_subnet_invalid_subnet() {
+        let resolver = DnsResolver::Google;
+        let client = resolver.connect().await;
+        let result = client
+            .resolve_with_subnet("example.com", "not_a_subnet")
+            .await;
+        assert!(result.is_err());
     }
 }
