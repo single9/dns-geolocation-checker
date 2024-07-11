@@ -166,31 +166,39 @@ impl IpGeoChecker {
             .collect::<Vec<DomainConfig>>();
 
         let mut tasks = vec![];
-        for domain in domains.iter() {
-            domain.geo_routing.iter().for_each(|geo| {
-                tasks.push(async {
-                    let ips = resolver
-                        .resolve_with_subnet(
-                            domain.host.as_str(),
-                            test_subnets.get(&geo.to_string()).unwrap().subnets[0].as_str(),
-                        )
-                        .await
-                        .unwrap();
+        for domain in domains.into_iter() {
+            domain.geo_routing.into_iter().for_each(|geo| {
+                let subnets = test_subnets.get(&geo.to_string()).unwrap().subnets.clone();
+                subnets.into_iter().for_each(|subnet| {
+                    let host = domain.host.clone();
+                    let c_geo = geo.clone();
+                    let c_resolver = resolver.clone();
+                    let c_subnet = subnet.clone();
 
-                    let ip_info = self.batch_get_ip_info(&ips).await.unwrap();
+                    tasks.push(async move {
+                        let ips = c_resolver
+                            .resolve_with_subnet(&host.to_string(), &c_subnet.clone())
+                            .await
+                            .unwrap();
 
-                    ip_info
-                        .iter()
-                        .map(|ip| {
-                            IpGeoCheckerTestedData::default()
-                                .set_host(domain.host.as_str())
-                                .set_ip(ip.query.parse().unwrap())
-                                .set_geoip(ip.clone())
-                                .set_expected(geo)
-                                .set_actual(ip.country_code.as_str())
-                                .test()
-                        })
-                        .collect::<Vec<IpGeoCheckerTestedData>>()
+                        let geoip_results = self
+                            .batch_get_ip_info(&ips)
+                            .await
+                            .unwrap()
+                            .iter()
+                            .map(|ip| {
+                                IpGeoCheckerTestedData::default()
+                                    .set_host(&host.to_string())
+                                    .set_ip(ip.query.parse().unwrap())
+                                    .set_geoip(ip.clone())
+                                    .set_expected(c_geo.as_str())
+                                    .set_actual(ip.country_code.as_str())
+                                    .test()
+                            })
+                            .collect::<Vec<IpGeoCheckerTestedData>>();
+
+                        geoip_results
+                    });
                 });
             });
         }
