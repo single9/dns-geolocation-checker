@@ -224,3 +224,60 @@ impl IpGeoChecker {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::IpAddr;
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_set_host() {
+        let mut data = IpGeoCheckerTestedData::default();
+        data.set_host("example.com");
+        assert_eq!(data.host, String::from("example.com"));
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_set_ip() {
+        let mut data = IpGeoCheckerTestedData::default();
+        let ip: IpAddr = "192.0.2.1".parse().unwrap();
+        data.set_ip(ip);
+        assert_eq!(data.ip, ip);
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_set_geoip() {
+        let mut data = IpGeoCheckerTestedData::default();
+        let geoip = IpApiResponse::default();
+        data.set_geoip(geoip.clone());
+        assert!(data.geoip.query == geoip.query);
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_set_expected() {
+        let mut data = IpGeoCheckerTestedData::default();
+        data.set_expected("US");
+        assert_eq!(data.expected, String::from("us"));
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_set_actual() {
+        let mut data = IpGeoCheckerTestedData::default();
+        data.set_actual("US");
+        assert_eq!(data.actual, String::from("us"));
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_test_success() {
+        let mut data = IpGeoCheckerTestedData::default();
+        data.set_expected("US").set_actual("US");
+        assert!(data.test().is_ok());
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_test_failure() {
+        let mut data = IpGeoCheckerTestedData::default();
+        data.set_expected("US").set_actual("CA");
+        assert!(data.test().is_err());
+    }
+}
