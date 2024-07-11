@@ -1,5 +1,8 @@
 use anyhow::Result;
-use dns_geolocation_checker::{configs_parser::ConfigParser, ip_geo_checker::{IpGeoChecker, IpGeoCheckerTestedData}};
+use dns_geolocation_checker::{
+    configs_parser::ConfigParser,
+    ip_geo_checker::{IpGeoChecker, IpGeoCheckerTestedData},
+};
 use std::env;
 
 #[tokio::main]
@@ -24,7 +27,7 @@ async fn main() -> Result<()> {
         .into_iter()
         .filter(|r: &IpGeoCheckerTestedData| r.is_err())
         .for_each(|r| {
-            println!(
+            eprintln!(
                 "[Mismatched] {}, ip: {}, subnet: {}, expected: {}, actual: {}, error: {:?}",
                 r.host,
                 r.ip,
