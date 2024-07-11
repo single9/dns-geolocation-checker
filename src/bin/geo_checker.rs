@@ -1,11 +1,6 @@
 use anyhow::Result;
-use configs_parser::ConfigParser;
-use ip_geo_checker::{IpGeoChecker, IpGeoCheckerTestedData};
+use dns_geolocation_checker::{configs_parser::ConfigParser, ip_geo_checker::{IpGeoChecker, IpGeoCheckerTestedData}};
 use std::env;
-
-mod configs_parser;
-mod dns_client;
-mod ip_geo_checker;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,8 +15,8 @@ async fn main() -> Result<()> {
 
     res.clone().into_iter().filter(|r| r.is_ok()).for_each(|r| {
         println!(
-            "[Matched] {}, ip: {}, expected: {}, actual: {}",
-            r.host, r.ip, r.expected, r.actual
+            "[Matched] {}, ip: {}, subnet: {}, expected: {}, actual: {}",
+            r.host, r.ip, r.subnet, r.expected, r.actual
         );
     });
 
@@ -30,9 +25,10 @@ async fn main() -> Result<()> {
         .filter(|r: &IpGeoCheckerTestedData| r.is_err())
         .for_each(|r| {
             println!(
-                "[Mismatched] {}, ip: {}, expected: {}, actual: {}, error: {:?}",
+                "[Mismatched] {}, ip: {}, subnet: {}, expected: {}, actual: {}, error: {:?}",
                 r.host,
                 r.ip,
+                r.subnet,
                 r.expected,
                 r.actual,
                 r.err()

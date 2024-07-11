@@ -57,7 +57,7 @@ Put the file `config.toml` in the `configs` directory of the project. Or you can
 To run the DNS Geolocation Checker, use the following command:
 
 ```sh
-cargo run
+cargo run --bin geo-checker
 ```
 
 When you run the DNS Geolocation Checker, it will query the DNS records for each domain and check the geolocation of the IP addresses returned. If the IP address falls within one of the subnets specified in the `test_subnets` section, the geolocation will be considered a match.

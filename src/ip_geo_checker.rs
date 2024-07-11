@@ -30,6 +30,7 @@ pub struct IpGeoCheckerTestedData {
     pub host: String,
     pub ip: IpAddr,
     pub geoip: IpApiResponse,
+    pub subnet: String,
     pub expected: String,
     pub actual: String,
     pub error: Option<String>,
@@ -41,6 +42,7 @@ impl Default for IpGeoCheckerTestedData {
             host: "".to_string(),
             ip: "0.0.0.0".parse().unwrap(),
             geoip: IpApiResponse::default(),
+            subnet: "".to_string(),
             expected: "".to_string(),
             actual: "".to_string(),
             error: None,
@@ -61,6 +63,11 @@ impl IpGeoCheckerTestedData {
 
     pub fn set_geoip(&mut self, geoip: IpApiResponse) -> &mut Self {
         self.geoip = geoip;
+        self
+    }
+
+    pub fn set_subnet<T: ToString>(&mut self, subnet: T) -> &mut Self {
+        self.subnet = subnet.to_string();
         self
     }
 
@@ -191,6 +198,7 @@ impl IpGeoChecker {
                                     .set_host(&host.to_string())
                                     .set_ip(ip.query.parse().unwrap())
                                     .set_geoip(ip.clone())
+                                    .set_subnet(&c_subnet.clone())
                                     .set_expected(c_geo.as_str())
                                     .set_actual(ip.country_code.as_str())
                                     .test()
@@ -251,6 +259,13 @@ mod tests {
         let geoip = IpApiResponse::default();
         data.set_geoip(geoip.clone());
         assert!(data.geoip.query == geoip.query);
+    }
+
+    #[test]
+    fn test_ip_geo_checker_tested_data_set_subnet() {
+        let mut data = IpGeoCheckerTestedData::default();
+        data.set_subnet("");
+        assert_eq!(data.subnet, String::from(""));
     }
 
     #[test]
