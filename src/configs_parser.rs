@@ -3,9 +3,15 @@
 use serde::Deserialize;
 use std::{collections::HashMap, fs};
 
+use crate::ip_geo_client::IpGeoProviderType;
+
 /// A struct to hold the parsed config
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct Config {
+    /// The IP geo provider
+    pub ip_geo_provider: IpGeoProviderType,
+    #[serde(default)]
+    pub mmdb_path: Option<String>,
     /// A map of country codes to their respective subnets
     pub test_subnets: HashMap<String, RoutingCountryConfig>,
     /// A list of domains and their respective geo routing

@@ -5,7 +5,12 @@ use std::net::IpAddr;
 
 use crate::configs_parser::{Config, DomainConfig};
 use crate::dns_client::DnsResolver;
-use crate::ip_geo_client::GetGeoIpInfo;
+use crate::ip_geo_client::{GetGeoIpInfo, IpGeoClient, IpGeoProvider};
+
+#[cfg(feature = "ip-api")]
+use crate::ip_geo_client::ip_api_client::IpApiClient;
+#[cfg(feature = "mmdb")]
+use crate::ip_geo_client::mmdb_client::MMDBClient;
 
 /// A struct to hold the response for the Geo IP API
 #[derive(Default, Debug, Clone, Deserialize)]
@@ -121,16 +126,14 @@ pub struct IpGeoCheckerResult {
     pub actual: bool,
 }
 
-pub struct IpGeoCheckerBuilder<C> {
-    client: C,
+pub struct IpGeoCheckerBuilder {
     dns_resolver: DnsResolver,
     config: Config,
 }
 
-impl<C: GetGeoIpInfo + Clone> IpGeoCheckerBuilder<C> {
-    pub fn new(client: C) -> Self {
+impl IpGeoCheckerBuilder {
+    pub fn new() -> Self {
         Self {
-            client,
             dns_resolver: DnsResolver::Google,
             config: Config::default(),
         }
@@ -146,9 +149,19 @@ impl<C: GetGeoIpInfo + Clone> IpGeoCheckerBuilder<C> {
         self
     }
 
-    pub fn build(&mut self) -> IpGeoChecker<C> {
+    #[cfg(feature = "ip-api")]
+    pub fn with_ip_api_client(&mut self) -> IpGeoChecker<IpApiClient> {
         IpGeoChecker {
-            client: self.client.clone(),
+            client: IpGeoClient::with_provider::<IpApiClient>(),
+            dns_resolver: self.dns_resolver.clone(),
+            config: self.config.clone(),
+        }
+    }
+
+    #[cfg(feature = "mmdb")]
+    pub fn with_mmdb_client(&mut self) -> IpGeoChecker<MMDBClient> {
+        IpGeoChecker {
+            client: IpGeoClient::with_provider::<MMDBClient>(),
             dns_resolver: self.dns_resolver.clone(),
             config: self.config.clone(),
         }
@@ -156,15 +169,15 @@ impl<C: GetGeoIpInfo + Clone> IpGeoCheckerBuilder<C> {
 }
 
 #[derive(Clone)]
-pub struct IpGeoChecker<C> {
-    client: C,
+pub struct IpGeoChecker<T> {
+    client: IpGeoProvider<T>,
     dns_resolver: DnsResolver,
     config: Config,
 }
 
-impl<C: GetGeoIpInfo + Clone> IpGeoChecker<C> {
-    pub fn new(client: C) -> IpGeoCheckerBuilder<C> {
-        IpGeoCheckerBuilder::new(client)
+impl<T: GetGeoIpInfo + Clone> IpGeoChecker<T> {
+    pub fn new() -> IpGeoCheckerBuilder {
+        IpGeoCheckerBuilder::new()
     }
 
     pub async fn check(&self) -> Vec<IpGeoCheckerTestedData> {

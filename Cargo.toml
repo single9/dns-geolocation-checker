@@ -10,8 +10,8 @@ readme = "README.md"
 keywords = ["tool"]
 
 [[bin]]
-name = "geo-checker"
-path = "src/bin/geo_checker.rs"
+name = "dns-geo-checker"
+path = "src/bin/dns_geo_checker.rs"
 
 [features]
 default = ["ip-api"]

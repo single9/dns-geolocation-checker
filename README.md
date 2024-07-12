@@ -33,6 +33,9 @@ cargo build
 You can configure the DNS Geolocation Checker by modifying the `config.toml` file. The configuration file contains the following sections:
 
 ```toml
+ip_geo_provider = "ip-api"
+# or ip_geo_provider = "mmdb"
+
 [test_subnets]
 sg = { subnets = ["175.41.192.0/18"] }
 us = { subnets = ["44.208.193.0/24"] }
@@ -52,12 +55,21 @@ geo_routing = ["sg", "us"]
 
 Put the file `config.toml` in the `configs` directory of the project. Or you can specify the path to the configuration file using the `CONFIG_PATH` environment variable when running the application.
 
+#### MMDB
+
+If you want to use the MaxMind GeoLite2 database, you need to download the database from the [MaxMind website](https://dev.maxmind.com/geoip/geoip2/geolite2/). After downloading the database, you need to specify the path to the database in the `config.toml` file:
+
+```toml
+ip_geo_provider = "mmdb"
+mmdb_path = "/path/to/GeoLite2-City.mmdb"
+```
+
 ### Run
 
 To run the DNS Geolocation Checker, use the following command:
 
 ```sh
-cargo run --bin geo-checker
+cargo run --bin dns-geo-checker
 ```
 
 When you run the DNS Geolocation Checker, it will query the DNS records for each domain and check the geolocation of the IP addresses returned. If the IP address falls within one of the subnets specified in the `test_subnets` section, the geolocation will be considered a match.
