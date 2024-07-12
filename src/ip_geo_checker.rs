@@ -176,10 +176,12 @@ pub struct IpGeoChecker<T> {
 }
 
 impl<T: GetGeoIpInfo + Clone> IpGeoChecker<T> {
+    /// Create a new instance of the IpGeoChecker
     pub fn new() -> IpGeoCheckerBuilder {
         IpGeoCheckerBuilder::new()
     }
 
+    /// Check the Geo IP of the domains
     pub async fn check(&self) -> Vec<IpGeoCheckerTestedData> {
         let resolver = self.dns_resolver.connect().await;
         let test_subnets = self.config.test_subnets.clone();

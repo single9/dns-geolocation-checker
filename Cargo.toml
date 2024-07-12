@@ -1,6 +1,6 @@
 [package]
 name = "dns-geolocation-checker"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "A tool to check the geolocation of a domain based on its DNS records."
 homepage = "https://github.com/single9/dns-geolocation-checker"
@@ -14,7 +14,8 @@ name = "dns-geo-checker"
 path = "src/bin/dns_geo_checker.rs"
 
 [features]
-default = ["ip-api", "mmdb"]
+default = ["mmdb"]
+full = ["ip-api", "mmdb"]
 ip-api = ["reqwest"]
 mmdb = ["maxminddb"]
 

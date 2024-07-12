@@ -19,6 +19,7 @@ pub struct Config {
     pub domain: Vec<DomainConfig>,
 }
 
+/// A struct to hold the domain config
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct DomainConfig {
     /// The host of the domain

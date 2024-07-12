@@ -37,7 +37,7 @@ pub enum IpGeoProviderType {
 
 impl Default for IpGeoProviderType {
     fn default() -> Self {
-        Self::IpApi
+        Self::MMDB
     }
 }
 
