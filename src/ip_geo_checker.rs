@@ -2,18 +2,20 @@
 
 use serde::Deserialize;
 use std::net::IpAddr;
-use Result;
 
 use crate::configs_parser::{Config, DomainConfig};
 use crate::dns_client::DnsResolver;
+use crate::ip_geo_client::{GetGeoIpInfo, IpGeoClient, IpGeoProvider};
 
-const IP_API_BATCH: &'static str = "http://ip-api.com/batch";
+#[cfg(feature = "ip-api")]
+use crate::ip_geo_client::ip_api_client::IpApiClient;
+#[cfg(feature = "mmdb")]
+use crate::ip_geo_client::mmdb_client::MMDBClient;
 
-/// A struct to hold the response from the ip-api.com API
+/// A struct to hold the response for the Geo IP API
 #[derive(Default, Debug, Clone, Deserialize)]
-pub struct IpApiResponse {
+pub struct GeoIpResponse {
     pub query: String,
-    pub status: String,
     pub country: String,
     #[serde(rename = "countryCode")]
     pub country_code: String,
@@ -21,7 +23,6 @@ pub struct IpApiResponse {
     #[serde(rename = "regionName")]
     pub region_name: String,
     pub city: String,
-    pub zip: String,
     pub lat: f64,
     pub lon: f64,
 }
@@ -34,7 +35,7 @@ pub struct IpGeoCheckerTestedData {
     /// The IP address
     pub ip: IpAddr,
     /// The response from the ip-api.com API
-    pub geoip: IpApiResponse,
+    pub geoip: GeoIpResponse,
     /// The subnet
     pub subnet: String,
     /// The expected country code
@@ -50,7 +51,7 @@ impl Default for IpGeoCheckerTestedData {
         Self {
             host: "".to_string(),
             ip: "0.0.0.0".parse().unwrap(),
-            geoip: IpApiResponse::default(),
+            geoip: GeoIpResponse::default(),
             subnet: "".to_string(),
             expected: "".to_string(),
             actual: "".to_string(),
@@ -70,7 +71,7 @@ impl IpGeoCheckerTestedData {
         self
     }
 
-    pub fn set_geoip(&mut self, geoip: IpApiResponse) -> &mut Self {
+    pub fn set_geoip(&mut self, geoip: GeoIpResponse) -> &mut Self {
         self.geoip = geoip;
         self
     }
@@ -120,21 +121,19 @@ impl IpGeoCheckerTestedData {
 #[derive(Default, Clone, Debug)]
 pub struct IpGeoCheckerResult {
     pub domain: DomainConfig,
-    pub geoip: Vec<IpApiResponse>,
+    pub geoip: Vec<GeoIpResponse>,
     pub expected: String,
     pub actual: bool,
 }
 
 pub struct IpGeoCheckerBuilder {
-    client: reqwest::Client,
     dns_resolver: DnsResolver,
     config: Config,
 }
 
 impl IpGeoCheckerBuilder {
-    pub fn new(client: reqwest::Client) -> Self {
+    pub fn new() -> Self {
         Self {
-            client,
             dns_resolver: DnsResolver::Google,
             config: Config::default(),
         }
@@ -150,9 +149,19 @@ impl IpGeoCheckerBuilder {
         self
     }
 
-    pub fn build(&mut self) -> IpGeoChecker {
+    #[cfg(feature = "ip-api")]
+    pub fn with_ip_api_client(&mut self) -> IpGeoChecker<IpApiClient> {
         IpGeoChecker {
-            client: self.client.clone(),
+            client: IpGeoClient::with_provider::<IpApiClient>(&self.config),
+            dns_resolver: self.dns_resolver.clone(),
+            config: self.config.clone(),
+        }
+    }
+
+    #[cfg(feature = "mmdb")]
+    pub fn with_mmdb_client(&mut self) -> IpGeoChecker<MMDBClient> {
+        IpGeoChecker {
+            client: IpGeoClient::with_provider::<MMDBClient>(&self.config),
             dns_resolver: self.dns_resolver.clone(),
             config: self.config.clone(),
         }
@@ -160,17 +169,19 @@ impl IpGeoCheckerBuilder {
 }
 
 #[derive(Clone)]
-pub struct IpGeoChecker {
-    client: reqwest::Client,
+pub struct IpGeoChecker<T> {
+    client: IpGeoProvider<T>,
     dns_resolver: DnsResolver,
     config: Config,
 }
 
-impl IpGeoChecker {
-    pub fn new(client: reqwest::Client) -> IpGeoCheckerBuilder {
-        IpGeoCheckerBuilder::new(client)
+impl<T: GetGeoIpInfo + Clone> IpGeoChecker<T> {
+    /// Create a new instance of the IpGeoChecker
+    pub fn new() -> IpGeoCheckerBuilder {
+        IpGeoCheckerBuilder::new()
     }
 
+    /// Check the Geo IP of the domains
     pub async fn check(&self) -> Vec<IpGeoCheckerTestedData> {
         let resolver = self.dns_resolver.connect().await;
         let test_subnets = self.config.test_subnets.clone();
@@ -198,6 +209,7 @@ impl IpGeoChecker {
                             .unwrap();
 
                         let geoip_results = self
+                            .client
                             .batch_get_ip_info(&ips)
                             .await
                             .unwrap()
@@ -226,20 +238,6 @@ impl IpGeoChecker {
             .flatten()
             .collect()
     }
-
-    async fn batch_get_ip_info(
-        &self,
-        ips: &Vec<std::net::IpAddr>,
-    ) -> Result<Vec<IpApiResponse>, reqwest::Error> {
-        let ips = ips.iter().map(|a| a.to_string()).collect::<Vec<String>>();
-        self.client
-            .post(IP_API_BATCH)
-            .json(&ips)
-            .send()
-            .await?
-            .json::<Vec<IpApiResponse>>()
-            .await
-    }
 }
 
 #[cfg(test)]
@@ -265,7 +263,7 @@ mod tests {
     #[test]
     fn test_ip_geo_checker_tested_data_set_geoip() {
         let mut data = IpGeoCheckerTestedData::default();
-        let geoip = IpApiResponse::default();
+        let geoip = GeoIpResponse::default();
         data.set_geoip(geoip.clone());
         assert!(data.geoip.query == geoip.query);
     }

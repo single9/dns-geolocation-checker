@@ -1,6 +1,6 @@
 [package]
 name = "dns-geolocation-checker"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "A tool to check the geolocation of a domain based on its DNS records."
 homepage = "https://github.com/single9/dns-geolocation-checker"
@@ -10,12 +10,18 @@ readme = "README.md"
 keywords = ["tool"]
 
 [[bin]]
-name = "geo-checker"
-path = "src/bin/geo_checker.rs"
+name = "dns-geo-checker"
+path = "src/bin/dns_geo_checker.rs"
+
+[features]
+default = ["mmdb"]
+full = ["ip-api", "mmdb"]
+ip-api = ["reqwest"]
+mmdb = ["maxminddb"]
 
 [dependencies]
 anyhow = "1.0.86"
-reqwest = { version = "0.12.5", features = ["json"] }
+reqwest = { version = "0.12.5", features = ["json"], optional = true}
 serde = { version = "1.0.204", features = ["serde_derive"] }
 serde_json = "1.0.120"
 tokio = { version = "1.38.0", features = ["full"] }
@@ -25,3 +31,4 @@ hickory-client = "0.24.1"
 hickory-proto = "0.24.1"
 rand = "0.8.5"
 futures = "0.3.30"
+maxminddb = { version = "0.24.0", optional = true }
