@@ -9,6 +9,7 @@ use crate::ip_geo_client::IpGeoProviderType;
 #[derive(Default, Debug, Clone, Deserialize)]
 pub struct Config {
     /// The IP geo provider
+    #[serde(default)]
     pub ip_geo_provider: IpGeoProviderType,
     #[serde(default)]
     pub mmdb_path: Option<String>,

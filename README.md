@@ -33,8 +33,11 @@ cargo build
 You can configure the DNS Geolocation Checker by modifying the `config.toml` file. The configuration file contains the following sections:
 
 ```toml
+# Use "ip-api" or "mmdb"
 ip_geo_provider = "ip-api"
-# or ip_geo_provider = "mmdb"
+# MMDB
+#ip_geo_provider = "mmdb"
+#mmdb_path = "./mmdb/GeoLite2-City.mmdb"
 
 [test_subnets]
 sg = { subnets = ["175.41.192.0/18"] }
@@ -55,6 +58,18 @@ geo_routing = ["sg", "us"]
 
 Put the file `config.toml` in the `configs` directory of the project. Or you can specify the path to the configuration file using the `CONFIG_PATH` environment variable when running the application.
 
+### IP Geolocation Providers
+
+#### IP-API
+
+If you want to use the [IP Geolocation API](https://ip-api.com/) service, you need to specify the provider in the `config.toml` file:
+
+```toml
+ip_geo_provider = "ip-api"
+```
+
+The IP Geolocation API is the default provider.
+
 #### MMDB
 
 If you want to use the MaxMind GeoLite2 database, you need to download the database from the [MaxMind website](https://dev.maxmind.com/geoip/geoip2/geolite2/). After downloading the database, you need to specify the path to the database in the `config.toml` file:
@@ -63,6 +78,8 @@ If you want to use the MaxMind GeoLite2 database, you need to download the datab
 ip_geo_provider = "mmdb"
 mmdb_path = "/path/to/GeoLite2-City.mmdb"
 ```
+
+The default path is `./mmdb/GeoLite2-City.mmdb`.
 
 ### Run
 
@@ -91,10 +108,6 @@ To run the tests for this project, execute:
 ```sh
 cargo test --verbose
 ```
-
-## Notice
-
-This application use the [IP Geolocation API](https://ip-api.com/) to get the geolocation of IP addresses.
 
 ## TODO
 

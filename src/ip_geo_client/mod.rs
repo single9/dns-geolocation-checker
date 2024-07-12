@@ -2,7 +2,7 @@ use std::{error::Error, net::IpAddr};
 
 use serde::Deserialize;
 
-use crate::ip_geo_checker::GeoIpResponse;
+use crate::{configs_parser::Config, ip_geo_checker::GeoIpResponse};
 
 #[cfg(feature = "ip-api")]
 pub mod ip_api_client;
@@ -10,7 +10,7 @@ pub mod ip_api_client;
 pub mod mmdb_client;
 
 pub trait NewProvider {
-    fn new() -> Self;
+    fn new(config: &Config) -> Self;
 }
 
 pub trait GetGeoIpInfo {
@@ -37,7 +37,7 @@ pub enum IpGeoProviderType {
 
 impl Default for IpGeoProviderType {
     fn default() -> Self {
-        Self::None
+        Self::IpApi
     }
 }
 
@@ -73,10 +73,10 @@ impl<T: GetGeoIpInfo> GetGeoIpInfo for IpGeoProvider<T> {
 pub struct IpGeoClient;
 
 impl IpGeoClient {
-    pub fn with_provider<T>() -> IpGeoProvider<T>
+    pub fn with_provider<T>(config: &Config) -> IpGeoProvider<T>
     where
         T: GetGeoIpInfo + NewProvider + Clone,
     {
-        IpGeoProvider(T::new())
+        IpGeoProvider(T::new(config))
     }
 }

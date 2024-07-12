@@ -61,7 +61,9 @@ async fn main() -> Result<()> {
                 .check()
                 .await
         }
-        _ => panic!("Invalid IP Geo Provider"),
+        _ => panic!(
+            "[Error] Invalid IP Geo Provider. Please add a valid provider in the config file."
+        ),
     };
 
     print_tested_data(data);

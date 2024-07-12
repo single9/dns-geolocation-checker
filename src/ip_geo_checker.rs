@@ -152,7 +152,7 @@ impl IpGeoCheckerBuilder {
     #[cfg(feature = "ip-api")]
     pub fn with_ip_api_client(&mut self) -> IpGeoChecker<IpApiClient> {
         IpGeoChecker {
-            client: IpGeoClient::with_provider::<IpApiClient>(),
+            client: IpGeoClient::with_provider::<IpApiClient>(&self.config),
             dns_resolver: self.dns_resolver.clone(),
             config: self.config.clone(),
         }
@@ -161,7 +161,7 @@ impl IpGeoCheckerBuilder {
     #[cfg(feature = "mmdb")]
     pub fn with_mmdb_client(&mut self) -> IpGeoChecker<MMDBClient> {
         IpGeoChecker {
-            client: IpGeoClient::with_provider::<MMDBClient>(),
+            client: IpGeoClient::with_provider::<MMDBClient>(&self.config),
             dns_resolver: self.dns_resolver.clone(),
             config: self.config.clone(),
         }

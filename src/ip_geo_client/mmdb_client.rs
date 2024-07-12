@@ -1,6 +1,6 @@
 use std::{env, net::IpAddr, sync::Arc};
 
-use crate::ip_geo_checker::GeoIpResponse;
+use crate::{configs_parser::Config, ip_geo_checker::GeoIpResponse};
 
 use super::{GetGeoIpInfo, NewProvider};
 
@@ -10,8 +10,11 @@ pub struct MMDBClient {
 }
 
 impl NewProvider for MMDBClient {
-    fn new() -> Self {
-        let mmdb_path = env::var("MMDB_PATH").unwrap_or("./mmdb/GeoLite2-City.mmdb".to_string());
+    fn new(config: &Config) -> Self {
+        let mmdb_path = config
+            .mmdb_path
+            .clone()
+            .unwrap_or(env::var("MMDB_PATH").unwrap_or("./mmdb/GeoLite2-City.mmdb".to_string()));
         let reader = maxminddb::Reader::open_readfile(mmdb_path).unwrap();
         Self {
             reader: Arc::new(reader),

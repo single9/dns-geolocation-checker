@@ -14,7 +14,7 @@ name = "dns-geo-checker"
 path = "src/bin/dns_geo_checker.rs"
 
 [features]
-default = ["ip-api"]
+default = ["ip-api", "mmdb"]
 ip-api = ["reqwest"]
 mmdb = ["maxminddb"]
 

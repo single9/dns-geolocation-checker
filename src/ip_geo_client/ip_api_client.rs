@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use crate::ip_geo_checker::GeoIpResponse;
+use crate::{configs_parser::Config, ip_geo_checker::GeoIpResponse};
 
 use super::{GetGeoIpInfo, NewProvider};
 
@@ -11,7 +11,7 @@ pub struct IpApiClient {
 }
 
 impl NewProvider for IpApiClient {
-    fn new() -> Self {
+    fn new(_: &Config) -> Self {
         Self {
             api_base: "http://ip-api.com".to_string(),
             client: reqwest::Client::new(),
