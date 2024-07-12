@@ -114,7 +114,7 @@ impl IpGeoClient {
     ///
     /// ```no_run
     /// use dns_geolocation_checker::ip_geo_client::{IpGeoClient, IpGeoProviderType};
-    /// use dns_geolocation_checker::ip_geo_client::ip_api_client::IpApiClient;
+    /// use dns_geolocation_checker::ip_geo_client::mmdb_client::MMDBClient;
     /// use dns_geolocation_checker::configs_parser::Config;
     ///
     /// let config = Config::default();
