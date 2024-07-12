@@ -2,7 +2,7 @@ use std::{env, net::IpAddr, sync::Arc};
 
 use crate::{configs_parser::Config, ip_geo_checker::GeoIpResponse};
 
-use super::{GetGeoIpInfo, NewProvider};
+use super::{GetGeoIpInfo, IpGeoProviderType, NewProvider};
 
 #[derive(Clone)]
 pub struct MMDBClient {
@@ -19,6 +19,10 @@ impl NewProvider for MMDBClient {
         Self {
             reader: Arc::new(reader),
         }
+    }
+
+    fn get_provider_type(&self) -> String {
+        IpGeoProviderType::MMDB.to_string()
     }
 }
 

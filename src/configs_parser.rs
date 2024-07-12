@@ -42,7 +42,29 @@ pub struct ConfigParser<T: for<'a> Deserialize<'a>> {
 }
 
 impl<C: for<'a> Deserialize<'a>> ConfigParser<C> {
-    /// Parse the contents
+    /// Parse the contents from a TOML string
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use dns_geolocation_checker::configs_parser::{ConfigParser, Config};
+    ///
+    /// let test_config = r#"
+    /// [test_subnets]
+    /// us = { subnets = ["44.208.193.0/24"] }
+    ///
+    /// [[domain]]
+    /// host = "google.com"
+    /// geo_routing = ["us"]
+    /// "#;
+    ///
+    /// let config: Config = ConfigParser::parse(test_config.to_string());
+    ///
+    /// assert_eq!(config.domain.len(), 1);
+    /// assert_eq!(config.test_subnets.len(), 1);
+    /// assert_eq!(config.domain[0].host, "google.com");
+    /// assert_eq!(config.test_subnets.get("us").unwrap().subnets[0], "44.208.193.0/24");
+    /// ```
     pub fn parse(contents: String) -> C {
         toml::from_str(&contents).unwrap()
     }

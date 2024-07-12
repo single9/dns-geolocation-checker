@@ -2,7 +2,7 @@ use std::net::IpAddr;
 
 use crate::{configs_parser::Config, ip_geo_checker::GeoIpResponse};
 
-use super::{GetGeoIpInfo, NewProvider};
+use super::{GetGeoIpInfo, IpGeoProviderType, NewProvider};
 
 #[derive(Clone)]
 pub struct IpApiClient {
@@ -16,6 +16,10 @@ impl NewProvider for IpApiClient {
             api_base: "http://ip-api.com".to_string(),
             client: reqwest::Client::new(),
         }
+    }
+
+    fn get_provider_type(&self) -> String {
+        IpGeoProviderType::IpApi.to_string()
     }
 }
 
