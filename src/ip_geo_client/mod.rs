@@ -110,19 +110,32 @@ impl IpGeoClient {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ## MMDB
+    ///
+    /// ```no_run
     /// use dns_geolocation_checker::ip_geo_client::{IpGeoClient, IpGeoProviderType};
-    /// use dns_geolocation_checker::ip_geo_client::mmdb_client::MMDBClient;
     /// use dns_geolocation_checker::ip_geo_client::ip_api_client::IpApiClient;
     /// use dns_geolocation_checker::configs_parser::Config;
     ///
     /// let config = Config::default();
     /// let mmdb_client = IpGeoClient::with_provider::<MMDBClient>(&config);
-    /// let ipapi_client = IpGeoClient::with_provider::<IpApiClient>(&config);
     ///
     /// assert_eq!(mmdb_client.get_provider_type(), IpGeoProviderType::MMDB.to_string());
+    /// ```
+    ///
+    /// ## IP-API
+    ///
+    /// ```no_run
+    /// use dns_geolocation_checker::ip_geo_client::{IpGeoClient, IpGeoProviderType};
+    /// use dns_geolocation_checker::ip_geo_client::ip_api_client::IpApiClient;
+    /// use dns_geolocation_checker::configs_parser::Config;
+    ///
+    /// let config = Config::default();
+    /// let ipapi_client = IpGeoClient::with_provider::<IpApiClient>(&config);
+    ///
     /// assert_eq!(ipapi_client.get_provider_type(), IpGeoProviderType::IpApi.to_string());
     /// ```
+    ///
     pub fn with_provider<T>(config: &Config) -> IpGeoProvider<T>
     where
         T: GetGeoIpInfo + NewProvider + Clone,
