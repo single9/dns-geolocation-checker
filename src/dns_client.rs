@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::fmt::Debug;
 use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
 use std::sync::Arc;
 
@@ -18,6 +19,7 @@ use tokio::net::UdpSocket;
 /// The address of a DNS server
 ///
 /// This can be either a predefined server or a custom one
+#[derive(Clone, Debug)]
 pub enum DnsServerAddr {
     /// Google's public DNS server
     Google,
@@ -100,8 +102,14 @@ impl DnsClient {
     }
 }
 
+impl Debug for DnsClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "DnsClient")
+    }
+}
+
 /// A DNS resolver
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum DnsResolver {
     Google,
     CloudFlare,
