@@ -5,7 +5,7 @@ edition = "2021"
 description = "A tool to check the geolocation of a domain based on its DNS records."
 homepage = "https://github.com/single9/dns-geolocation-checker"
 repository = "https://github.com/single9/dns-geolocation-checker"
-license-file = "LICENSE"
+license = "MIT"
 readme = "README.md"
 keywords = ["tool"]
 

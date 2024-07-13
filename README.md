@@ -1,5 +1,9 @@
 # DNS Geolocation Checker
 
+[![Documentation](https://docs.rs/dns-geolocation-checker/badge.svg)](https://docs.rs/dns-geolocation-checker)
+[![Package](https://img.shields.io/crates/v/dns-geolocation-checker.svg)](https://crates.io/crates/dns-geolocation-checker)
+[![GitHub License](https://img.shields.io/github/license/single9/dns-geolocation-checker)](https://github.com/single9/dns-geolocation-checker/blob/main/LICENSE)
+
 This project is a Rust application designed to check the geolocation of DNS addresses. It utilizes various Rust crates to parse configuration files, perform DNS queries, and check IP geolocations.
 
 ## Getting Started
