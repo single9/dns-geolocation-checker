@@ -1,4 +1,4 @@
-use std::net::IpAddr;
+use std::{net::IpAddr, sync::Arc};
 
 use crate::{configs_parser::Config, ip_geo_checker::GeoIpResponse};
 
@@ -7,14 +7,14 @@ use super::{GetGeoIpInfo, IpGeoProviderType, NewProvider};
 #[derive(Clone)]
 pub struct IpApiClient {
     api_base: String,
-    client: reqwest::Client,
+    client: Arc<reqwest::Client>,
 }
 
 impl NewProvider for IpApiClient {
     fn new(_: &Config) -> Self {
         Self {
             api_base: "http://ip-api.com".to_string(),
-            client: reqwest::Client::new(),
+            client: Arc::new(reqwest::Client::new()),
         }
     }
 
