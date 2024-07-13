@@ -51,7 +51,7 @@ To enable a feature flag, use the following command:
 cargo build -F ip-api
 ```
 
-To enable multiple feature flags, use the following command:
+To enable full features, use the following command:
 
 ```sh
 cargo build -F full
