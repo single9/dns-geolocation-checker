@@ -1,6 +1,6 @@
 [package]
 name = "dns-geolocation-checker"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "A tool to check the geolocation of a domain based on its DNS records."
 homepage = "https://github.com/single9/dns-geolocation-checker"
