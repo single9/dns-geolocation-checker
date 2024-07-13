@@ -126,6 +126,7 @@ pub struct IpGeoCheckerResult {
     pub actual: bool,
 }
 
+#[derive(Clone, Debug)]
 pub struct IpGeoCheckerBuilder {
     dns_resolver: DnsResolver,
     config: Config,
